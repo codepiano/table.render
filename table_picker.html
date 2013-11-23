@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<style>
+		.main_panel {
+			text-align: center;
+		}
+	</style>
+    <script type="text/javascript" src="./js/wiz_plugin_tool.js"></script>
+    <script>
+        (function(){
+            initView();
+        })();
+
+        var retry_count = 24;
+        function initView(){
+            if(retry_count-- < 0){
+                document.write('插件加载失败!');
+                return;
+            }
+            if(typeof codepiano === 'undefined'){
+                setTimeout(initView(), 100);
+                return;
+            }else{
+                codepiano.addJsWithDependency('js/jquery-2.0.3.min.js',['js/jquery.dataTables.min.js']);
+            }
+        }
+    </script>
+</head>
+<body>
+	<div class="main_panel">
+        <script>document.write(codepiano);</script>
+    </div>
+</body>
+</html>
