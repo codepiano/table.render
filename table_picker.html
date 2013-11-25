@@ -7,15 +7,18 @@
 			text-align: center;
 		}
 	</style>
-    <script type="text/javascript" src="./js/wiz_plugin_tool.js"></script>
+    <script type="text/javascript" src="./js/wiz-plugin-tool.js"></script>
+    <script type="text/javascript" src="./js/datatables-config.js"></script>
     <script>
+        var retry_count = 24;
+        var table_classes = 'table bordered-table';
+
         (function(){
             window.codepiano = codepiano();
-            initView();
+            initLinkFile();
         })();
 
-        var retry_count = 24;
-        function initView(){
+        function initLinkFile(){
             if(retry_count-- < 0){
                 document.write('插件加载失败!');
                 return;
@@ -23,10 +26,57 @@
             if(typeof codepiano === 'undefined'){
                 setTimeout(initView(), 100);
                 return;
+            }else if(!codepiano.noteWindow.$){
+                /* 通过jQuery对象判断是否需要初始化 */
+                codepiano.addCss('css/bootstrap.min.css');
+                codepiano.addCss('css/datatables-bootstrap.css');
+                codepiano.addJsWithDependency('js/jquery-2.0.3.min.js',['js/jquery.dataTables.min.js'], function(){
+                    codepiano.addJs('js/datatables-bootstrap.js', function(){
+                        initView();
+                    });
+                });
             }else{
-                codepiano.addJsWithDependency('js/jquery-2.0.3.min.js',['js/jquery.dataTables.min.js']);
+                initView();
             }
         }
+
+        function initView(){
+            window.$ = codepiano.noteWindow.$;
+            var index;
+            var tables = $('table');
+            for(index = 0;index < tables.length;index++){
+                var table = renderTable($(tables[index]));
+                table.dataTable(datatablesConfig);
+            }
+        }
+
+        /* datatables的正常运行需要表格具有thead和tbody */
+        function renderTable(table){
+            /* 给被渲染的table添加bootstrap样式 */
+            table.addClass(table_classes);
+            /* 修复tbody缺失 */
+            if(!$('tbody', table)[0]){
+               $('tr', table).wrapall('<tbody></tbody>'); 
+            }
+            /* 修复thead缺失 */
+            if(!$('thead', table)[0]){
+                var columnLength = $('tr:first-child > td').length;
+                var thHtml = '';
+                while(columnLength-- > 0){
+                    thHtml = '<th>列' + columnLength + '</th>' + thHtml;
+                }
+                var thead = '<thead><tr>' + thHtml + '</tr></thead>';
+                table.prepend(thead);
+            }
+            return table;
+        }
+
+        /* 清理datatables，还原table的dom */
+        function reductionTable(table){
+            table.removeClass(table_classes); 
+            table.fnDestroy();
+        }
+
     </script>
 </head>
 <body>
