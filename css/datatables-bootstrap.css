@@ -15,6 +15,7 @@ div.dataTables_filter label {
 
 div.dataTables_info {
 	padding-top: 8px;
+	height: 1px;
 }
 
 div.dataTables_paginate {

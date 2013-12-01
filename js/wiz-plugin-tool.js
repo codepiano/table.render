@@ -30,7 +30,7 @@ var codepiano = function(){
 				scriptTag.onload = callback;
 			}
 		},
-		/* 根据依赖加载js文件 */
+		/* 根据依赖加载js文件，依赖的结构为二维数组，每一个js文件对应一个回调函数，会在onload以后调用 */
 		addJsWithDependency : function(matrix, smithes, oracle){
 			/* 
 			 * onload指向的匿名函数调用时，this指的不再是codepiano对象
@@ -40,10 +40,12 @@ var codepiano = function(){
 			this.addJs(matrix, function(){
 				var smith;
 				for(smith in smithes){
-					that.addJs(smithes[smith]);
+					that.addJs(smithes[smith][0], smithes[smith][1]);
 				}	
-				oracle.apply(window);
 			});
+			if (oracle && typeof oracle === "function"){
+				oracle.apply(window);
+			}
 		},
 		/* 引入css文件 */
 		addCss : function(path){

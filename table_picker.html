@@ -3,20 +3,23 @@
 <head>
 	<meta charset="UTF-8">
 	<style>
-		.main_panel {
-			text-align: center;
-		}
-	</style>
+        .main_panel {
+            text-align: center;
+        }
+
+        #content_panel ul {
+            list-style:none;
+            margin:0px;
+            padding-left: 0px;
+        } 
+
+    </style>
     <script type="text/javascript" src="./js/wiz-plugin-tool.js"></script>
     <script type="text/javascript" src="./js/datatables-config.js"></script>
     <script>
         var retry_count = 24;
-        var table_classes = 'table bordered-table';
+        var table_classes = 'table bordered-table table-striped';
 
-        (function(){
-            window.codepiano = codepiano();
-            initLinkFile();
-        })();
 
         function initLinkFile(){
             if(retry_count-- < 0){
@@ -30,58 +33,100 @@
                 /* 通过jQuery对象判断是否需要初始化 */
                 codepiano.addCss('css/bootstrap.min.css');
                 codepiano.addCss('css/datatables-bootstrap.css');
-                codepiano.addJsWithDependency('js/jquery-2.0.3.min.js',['js/jquery.dataTables.min.js'], function(){
+                codepiano.addJsWithDependency('js/jquery-2.0.3.min.js',[['js/jquery.dataTables.min.js', function(){
                     codepiano.addJs('js/datatables-bootstrap.js', function(){
                         initView();
                     });
-                });
+                }]]);
             }else{
                 initView();
             }
         }
 
+        /* 初始化交互页面 */
         function initView(){
             window.$ = codepiano.noteWindow.$;
             var index;
             var tables = $('table');
+            var selectHtml = '<ul>';
             for(index = 0;index < tables.length;index++){
-                var table = renderTable($(tables[index]));
-                table.dataTable(datatablesConfig);
+                selectHtml += '<li>第' + (index + 1) + '个表格<input type="checkbox" id="' + index + '"/></li>';
             }
+            selectHtml += '</ul>';
+            document.getElementById('document_title').innerHTML = '当前浏览的笔记是：' + codepiano.objDocument.Title;
+            document.getElementById('content_panel').innerHTML = selectHtml;
+        }
+
+        /* 刷新表格渲染状态 */
+        function refresh(){
+            var tables = $('table');
+            var checkboxElement;
+            var table;
+            for(index = 0;index < tables.length;index++){
+                checkboxElement = document.getElementById(index.toString());
+                table = $(tables[index]);
+                if(checkboxElement && checkboxElement.checked) {
+                    renderTable(table);
+                }else{
+                    reductionTable(table);
+                }
+            }
+            // closeSelectionWindow();
         }
 
         /* datatables的正常运行需要表格具有thead和tbody */
         function renderTable(table){
-            /* 给被渲染的table添加bootstrap样式 */
-            table.addClass(table_classes);
-            /* 修复tbody缺失 */
-            if(!$('tbody', table)[0]){
-               $('tr', table).wrapall('<tbody></tbody>'); 
-            }
-            /* 修复thead缺失 */
-            if(!$('thead', table)[0]){
-                var columnLength = $('tr:first-child > td').length;
-                var thHtml = '';
-                while(columnLength-- > 0){
-                    thHtml = '<th>列' + columnLength + '</th>' + thHtml;
+            if(table && table[0]){
+                /* 给被渲染的table添加bootstrap样式 */
+                table.addClass(table_classes);
+                /* 修复tbody缺失 */
+                if(!$('tbody', table)[0]){
+                    $('tr', table).wrapall('<tbody></tbody>'); 
                 }
-                var thead = '<thead><tr>' + thHtml + '</tr></thead>';
-                table.prepend(thead);
+                /* 修复thead缺失 */
+                if(!$('thead', table)[0]){
+                    var columnLength = $('tr:first-child > td').length;
+                    var thHtml = '';
+                    while(columnLength-- > 0){
+                        thHtml = '<th>列' + columnLength + '</th>' + thHtml;
+                    }
+                    var thead = '<thead><tr>' + thHtml + '</tr></thead>';
+                    table.prepend(thead);
+                }
+                table.dataTable(datatablesConfig);
             }
-            return table;
         }
 
         /* 清理datatables，还原table的dom */
         function reductionTable(table){
-            table.removeClass(table_classes); 
-            table.fnDestroy();
+            if(table && table[0]){
+                table.removeClass(table_classes); 
+                $(table).dataTable().fnDestroy();
+            }
         }
 
+        /* */
+        function closeSelectionWindow(){
+            codepiano.objWindow.CloseHtmlDialog(document, "ok");
+        }
     </script>
 </head>
 <body>
-	<div class="main_panel">
-        <script>document.write(codepiano);</script>
+	<div class='main_panel'>
+        <p id="document_title"></p>
+        <div id='content_panel'>
+        </div>
+        <div id='button_panel'>
+            <input type='button' value='ok' id='ok' onclick='refresh()' />
+            <input type='button' value='cancle' id='cancel' onclick='closeSelectionWindow()' />
+        </div>
     </div>
+    <script>
+        (function(){
+            window.codepiano = codepiano();
+            codepiano.objApp.PluginLocalizeHtmlDialog(document);
+            initLinkFile();
+        })();
+    </script>
 </body>
 </html>
