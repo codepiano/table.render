@@ -85,7 +85,7 @@
                 }
                 /* 修复thead缺失 */
                 if(!$('thead', table)[0]){
-                    var columnLength = $('tr:first-child > td').length;
+                    var columnLength = $('tr:first-child > td', table).length;
                     var thHtml = '';
                     while(columnLength-- > 0){
                         thHtml = '<th>列' + columnLength + '</th>' + thHtml;
