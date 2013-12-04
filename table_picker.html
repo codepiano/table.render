@@ -101,7 +101,9 @@
         function reductionTable(table){
             if(table && table[0]){
                 table.removeClass(table_classes); 
-                $(table).dataTable().fnDestroy();
+                if($.fn.DataTable.fnIsDataTable(table[0])){
+                    $(table).dataTable().fnDestroy();
+                }
             }
         }
 
